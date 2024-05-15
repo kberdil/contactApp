@@ -1,8 +1,14 @@
+import 'dart:async';
+
+import 'package:contactsapp/EmptyPage.dart';
+import 'package:contactsapp/Service/APIService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'ColorConstants.dart';
-import 'EmptyPage.dart';
+import 'Constants/ColorConstants.dart';
+import 'ContactListTile.dart';
+import 'CustomBottomSheet.dart';
+import 'Models/Contact.dart';
 import 'ProfileSheet.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,8 +17,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? t = null;
-  var data = <Object>[];
+  Future<List<Contact>>? contactList;
+  Timer? _debounce;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,26 +41,7 @@ class _HomePageState extends State<HomePage> {
                     icon: Image.asset('assets/images/add.png'),
                     color: Colors.blue,
                     onPressed: () {
-                      showModalBottomSheet(
-                          isScrollControlled: true,
-                          context: context,
-                          builder: (BuildContext bc) {
-                            return Wrap(children: <Widget>[
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.9,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.transparent,
-                                      borderRadius: new BorderRadius.only(
-                                          topLeft: const Radius.circular(25.0),
-                                          topRight:
-                                              const Radius.circular(25.0))),
-                                  child: ProfileSheet(),
-                                ),
-                              )
-                            ]);
-                          });
+                      showProfileSheet(ProfileSheetType.adding);
                     },
                   )
                 ],
@@ -82,17 +70,57 @@ class _HomePageState extends State<HomePage> {
                                 fontWeight: FontWeight.normal,
                                 color: ColorConstants.grey)),
                         onChanged: (str) {
-                          print(str);
+                          if (_debounce?.isActive ?? false) _debounce?.cancel();
+                          _debounce =
+                              Timer(const Duration(milliseconds: 500), () {
+                            setState(() {
+                              contactList = APIService().getUserList(term: str);
+                            });
+                          });
                         },
                       ),
                     ),
                   ],
                 ),
               ),
-              Expanded(
-                flex: 1,
-                child: data.isEmpty ? EmptyPage() : Placeholder(),
-              )
+              SizedBox(height: 10.0),
+              FutureBuilder<List<Contact>>(
+                future: contactList,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    print('Error: ${snapshot.error}');
+                    return Text('Error: ${snapshot.error}');
+                  } else if (snapshot.hasData && snapshot.data!.length > 0) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Container(
+                            height: MediaQuery.of(context).size.height *
+                                0.8, // Adjust the height as needed
+                            child: ListView.builder(
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                Contact contact = snapshot.data![index];
+                                return ContactListTile(
+                                  contact: contact,
+                                  onTap: (Contact contact) {
+                                    showProfileSheet(
+                                        ProfileSheetType.info, contact);
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return EmptyPage();
+                  }
+                },
+              ),
             ],
           ),
         ),
@@ -103,13 +131,74 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     setState(() {
-      t = "Muhittin";
+      contactList = APIService().getUserList();
     });
   }
 
-  void update(int id, String name) {
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void update(Operation operation) {
     setState(() {
       // update data here
+      switch (operation.type) {
+        case OperationType.added:
+          // TODO: Handle this case.
+          break;
+        case OperationType.edited:
+          // TODO: Handle this case.
+          break;
+        case OperationType.deleted:
+          if (contactList != null) {
+            contactList =
+                removeContactById(contactList!, operation.contact.id!);
+            showModalBottomSheet(
+              backgroundColor: Colors.transparent,
+              context: context,
+              builder: (BuildContext context) {
+                return const CustomBottomSheet(message: 'Account deleted!');
+              },
+            );
+          }
+          break;
+      }
     });
+  }
+
+  Future<List<Contact>> removeContactById(
+      Future<List<Contact>> futureContacts, String id) async {
+    return futureContacts.then((List<Contact> contacts) {
+      contacts.removeWhere((contact) => contact.id == id);
+      return contacts;
+    });
+  }
+
+  void showProfileSheet(ProfileSheetType type, [Contact? contact]) async {
+    final result = await showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (BuildContext bc) {
+          return Wrap(children: <Widget>[
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.9,
+              child: Container(
+                decoration: const BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(25.0),
+                        topRight: Radius.circular(25.0))),
+                child: ProfileSheet(
+                  contact: contact,
+                  profileSheetType: type,
+                ),
+              ),
+            )
+          ]);
+        });
+    if (result != null) {
+      update(result);
+    }
   }
 }

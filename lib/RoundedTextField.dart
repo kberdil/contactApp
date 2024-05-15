@@ -1,27 +1,29 @@
-import 'package:contactsapp/ColorConstants.dart';
+import 'package:contactsapp/Constants/ColorConstants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class RoundedTextField extends StatefulWidget {
   final String hintText;
   final bool numericOnly;
-  const RoundedTextField(
-      {Key? key, required this.hintText, this.numericOnly = false})
-      : super(key: key);
+  final TextEditingController controller;
+  const RoundedTextField({
+    Key? key,
+    required this.hintText,
+    this.numericOnly = false,
+    required this.controller,
+  }) : super(key: key);
 
   @override
   _RoundedTextFieldState createState() => _RoundedTextFieldState();
 }
 
 class _RoundedTextFieldState extends State<RoundedTextField> {
-  TextEditingController _controller = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 43,
       child: TextField(
-        controller: _controller,
+        controller: widget.controller,
         textAlignVertical: TextAlignVertical.bottom,
         autocorrect: false,
         inputFormatters: widget.numericOnly
@@ -39,11 +41,5 @@ class _RoundedTextFieldState extends State<RoundedTextField> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

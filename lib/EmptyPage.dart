@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'ColorConstants.dart';
+import 'Constants/ColorConstants.dart';
 
 class EmptyPage extends StatelessWidget {
   const EmptyPage({super.key});
