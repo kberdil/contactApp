@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:contactsapp/Constants/ServiceConstants.dart';
+import 'package:contactsapp/Service/APIRouter.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../Models/Contact.dart';
 
@@ -41,7 +43,10 @@ class APIService {
     }
   }
 
-  void updateUserById(String id) {}
+  void updateUserById(String id) {
+    //: TODO EDİT
+  }
+
   Future<bool> deleteUserById(String id) async {
     var URI = ServiceConstants().getURI(Endpoints.deleteUser, id: id);
     var response = await http.delete(URI, headers: ServiceConstants().headers);
@@ -52,7 +57,37 @@ class APIService {
     }
   }
 
-  String uploadImage() {
-    return "Nope";
+  Future<String> uploadImage(File image) async {
+    if (!image.existsSync()) {
+      throw Exception('Image not found');
+    }
+    String fileName = image.path.split('/').last;
+    // Dosya uzantısını alın
+    String fileExtension = fileName.split('.').last.toLowerCase();
+    // Dosya uzantısı kontrolü
+    if (fileExtension != 'png' &&
+        fileExtension != 'jpg' &&
+        fileExtension != 'jpeg') {
+      throw Exception('Invalid file type');
+    }
+
+    var URI = ServiceConstants().getURI(Endpoints.getImageUrl);
+    var request = http.MultipartRequest('POST', URI)
+      ..headers.addAll(ServiceConstants().headers)
+      ..files.add(await http.MultipartFile.fromPath(
+        'image',
+        image.path,
+        contentType:
+            MediaType('image', fileExtension == '.png' ? 'png' : 'jpeg'),
+      ));
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
+    // ParseData
+    if (response.statusCode == 200) {
+      var responseBody = json.decode(response.body);
+      return responseBody['data']['imageUrl'];
+    } else {
+      throw Exception('Failed to create user');
+    }
   }
 }

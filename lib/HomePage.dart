@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:contactsapp/EmptyPage.dart';
 import 'package:contactsapp/Service/APIService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'Constants/ColorConstants.dart';
-import 'ContactListTile.dart';
-import 'CustomBottomSheet.dart';
 import 'Models/Contact.dart';
 import 'ProfileSheet.dart';
+import 'Reusable Widgets/ContactListTile.dart';
+import 'Reusable Widgets/CustomBottomSheet.dart';
+import 'Reusable Widgets/EmptyPage.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -19,6 +19,88 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   Future<List<Contact>>? contactList;
   Timer? _debounce;
+
+  @override
+  void initState() {
+    setState(() {
+      contactList = APIService().getUserList();
+    });
+  }
+
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void update(Operation operation) {
+    setState(() {
+      // update data here
+      switch (operation.type) {
+        case OperationType.added:
+          // TODO: Handle this case.
+          print('operation added');
+          break;
+        case OperationType.edited:
+          // TODO: Handle this case.
+          break;
+        case OperationType.deleted:
+          if (contactList != null) {
+            contactList =
+                removeContactById(contactList!, operation.contact.id!);
+            showModalBottomSheet(
+              backgroundColor: Colors.transparent,
+              context: context,
+              builder: (BuildContext context) {
+                return const CustomBottomSheet(message: 'Account deleted!');
+              },
+            );
+          }
+          break;
+      }
+    });
+  }
+
+  Future<List<Contact>> removeContactById(
+      Future<List<Contact>> futureContacts, String id) async {
+    return futureContacts.then((List<Contact> contacts) {
+      contacts.removeWhere((contact) => contact.id == id);
+      return contacts;
+    });
+  }
+
+  void showProfileSheet(ProfileSheetType type, [Contact? contact]) async {
+    final result = await showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
+      builder: (BuildContext bc) {
+        return Wrap(
+          children: <Widget>[
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.9,
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(25.0),
+                  topRight: Radius.circular(25.0),
+                ),
+                child: Container(
+                  child: ProfileSheet(
+                    contact: contact,
+                    profileSheetType: type,
+                  ),
+                ),
+              ),
+            )
+          ],
+        );
+      },
+    );
+    if (result != null) {
+      update(result);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,79 +208,5 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    setState(() {
-      contactList = APIService().getUserList();
-    });
-  }
-
-  void dispose() {
-    _debounce?.cancel();
-    super.dispose();
-  }
-
-  void update(Operation operation) {
-    setState(() {
-      // update data here
-      switch (operation.type) {
-        case OperationType.added:
-          // TODO: Handle this case.
-          break;
-        case OperationType.edited:
-          // TODO: Handle this case.
-          break;
-        case OperationType.deleted:
-          if (contactList != null) {
-            contactList =
-                removeContactById(contactList!, operation.contact.id!);
-            showModalBottomSheet(
-              backgroundColor: Colors.transparent,
-              context: context,
-              builder: (BuildContext context) {
-                return const CustomBottomSheet(message: 'Account deleted!');
-              },
-            );
-          }
-          break;
-      }
-    });
-  }
-
-  Future<List<Contact>> removeContactById(
-      Future<List<Contact>> futureContacts, String id) async {
-    return futureContacts.then((List<Contact> contacts) {
-      contacts.removeWhere((contact) => contact.id == id);
-      return contacts;
-    });
-  }
-
-  void showProfileSheet(ProfileSheetType type, [Contact? contact]) async {
-    final result = await showModalBottomSheet(
-        isScrollControlled: true,
-        context: context,
-        builder: (BuildContext bc) {
-          return Wrap(children: <Widget>[
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.9,
-              child: Container(
-                decoration: const BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(25.0),
-                        topRight: Radius.circular(25.0))),
-                child: ProfileSheet(
-                  contact: contact,
-                  profileSheetType: type,
-                ),
-              ),
-            )
-          ]);
-        });
-    if (result != null) {
-      update(result);
-    }
   }
 }

@@ -1,54 +1,23 @@
+import 'dart:io';
+
 import 'package:contactsapp/Constants/ColorConstants.dart';
 import 'package:contactsapp/Service/APIService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
-import 'CustomBottomSheet.dart';
 import 'Models/Contact.dart';
-import 'ProfileInfoField.dart';
-import 'RoundedTextField.dart';
-import 'YesNoQuestion.dart';
+import 'Reusable Widgets/CameraPickerBottomSheet.dart';
+import 'Reusable Widgets/CustomBottomSheet.dart';
+import 'Reusable Widgets/ProfileInfoField.dart';
+import 'Reusable Widgets/RoundedTextField.dart';
+import 'Reusable Widgets/YesNoQuestion.dart';
 
 enum ProfileSheetType { adding, editing, info }
-/*
-class ProfileScreen extends StatefulWidget {
-  final ProfileSheetType defaultProfileSheetType;
-  final Contact? contact;
-
-  const ProfileScreen(
-      {Key? key,
-      this.defaultProfileSheetType = ProfileSheetType.info,
-      this.contact})
-      : super(key: key);
-  @override
-  _ProfileScreenState createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  ProfileSheetType profileSheetType = ProfileSheetType.info;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: ProfileSheet(
-        profileSheetType: widget.defaultProfileSheetType,
-        onProfileSheetTypeChanged: (newType) {
-          setState(() {
-            profileSheetType = newType;
-          });
-        },
-        contact: widget.contact,
-      ),
-    );
-  }
-}
-*/
 
 class ProfileSheet extends StatefulWidget {
   Contact? contact;
   ProfileSheetType profileSheetType;
-  //final Function(ProfileSheetType) onProfileSheetTypeChanged;
-  //bool isEditing;
 
   ProfileSheet({super.key, this.contact, required this.profileSheetType});
 
@@ -61,6 +30,9 @@ class _ProfileSheetState extends State<ProfileSheet> {
   final TextEditingController _controllerLastName = TextEditingController();
   final TextEditingController _controllerPhoneNumber = TextEditingController();
   final ValueNotifier<bool> _isButtonEnabled = ValueNotifier<bool>(false);
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+  OperationType? operationType;
 
   @override
   void initState() {
@@ -99,11 +71,50 @@ class _ProfileSheetState extends State<ProfileSheet> {
     }
   }
 
-  Contact getNewContactInfo() {
-    return Contact(
+  Future<Contact> getNewContactInfo() async {
+    var newContact = Contact(
       firstName: _controllerFirstName.text,
       lastName: _controllerLastName.text,
       phoneNumber: _controllerPhoneNumber.text,
+    );
+    if (_image != null) {
+      await APIService().uploadImage(_image!).then((value) => {
+            if (value != null) {newContact.profileImageUrl = value}
+          });
+    }
+    return newContact;
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await _picker.pickImage(source: source);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      }
+    });
+  }
+
+  void _showPicker(context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(25.0),
+        ),
+      ),
+      builder: (BuildContext bc) {
+        return CameraPickerBottomSheet(
+          onCameraPressed: () {
+            _pickImage(ImageSource.camera);
+            Navigator.of(context).pop();
+          },
+          onGalleryPressed: () {
+            _pickImage(ImageSource.gallery);
+            Navigator.of(context).pop();
+          },
+        );
+      },
     );
   }
 
@@ -114,6 +125,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
             child: SingleChildScrollView(
                 child: Column(
       children: [
+        SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -129,6 +141,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
                 switch (widget.profileSheetType) {
                   case ProfileSheetType.adding:
                     Navigator.pop(context);
+
                     break;
                   case ProfileSheetType.editing:
                     //widget.onProfileSheetTypeChanged(ProfileSheetType.info);
@@ -137,38 +150,49 @@ class _ProfileSheetState extends State<ProfileSheet> {
                     });
                     break;
                   case ProfileSheetType.info:
-                    Navigator.pop(context);
+                    if (operationType == null) {
+                      Navigator.pop(context);
+                    } else {
+                      Navigator.pop(
+                          context, Operation(widget.contact!, operationType!));
+                    }
                     break;
                 }
               },
               child: const Text('Cancel'),
             ),
-            Text(
-              "New Contact",
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: ColorConstants.black,
+            if (widget.profileSheetType == ProfileSheetType.adding ||
+                operationType == OperationType.added) ...[
+              Text(
+                "New Contact",
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.black,
+                ),
               ),
-            ),
-            if (widget.profileSheetType == ProfileSheetType.adding) ...[
+            ] else ...[
+              SizedBox(width: 20),
+            ],
+            if (widget.profileSheetType != ProfileSheetType.info) ...[
               ValueListenableBuilder<bool>(
                 valueListenable: _isButtonEnabled,
                 builder: (context, isEnabled, child) {
                   return TextButton(
                     onPressed: isEnabled
-                        ? () {
-                            if (false) {
-                              print('eeeeeedited');
+                        ? () async {
+                            if (widget.profileSheetType ==
+                                ProfileSheetType.editing) {
                             } else {
                               APIService()
-                                  .createUser(getNewContactInfo())
+                                  .createUser(await getNewContactInfo())
                                   .then((value) => {
                                         setState(() {
                                           if (value != null) {
                                             widget.profileSheetType =
                                                 ProfileSheetType.info;
                                             widget.contact = value;
+                                            operationType = OperationType.added;
                                             showModalBottomSheet(
                                               backgroundColor:
                                                   Colors.transparent,
@@ -193,9 +217,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
                   );
                 },
               ),
-            ] else if (widget.profileSheetType == ProfileSheetType.editing)
-              ...[]
-            else ...[
+            ] else ...[
               TextButton(
                 style: TextButton.styleFrom(
                   textStyle: GoogleFonts.nunito(
@@ -213,87 +235,54 @@ class _ProfileSheetState extends State<ProfileSheet> {
                 child: const Text('Edit'),
               ),
             ]
-
-            /*if (widget.contact == null ||
-                (widget.contact != null && widget.isEditing)) ...[
-              ValueListenableBuilder<bool>(
-                valueListenable: _isButtonEnabled,
-                builder: (context, isEnabled, child) {
-                  return TextButton(
-                    onPressed: isEnabled
-                        ? () {
-                            if (widget.isEditing) {
-                              print('eeeeeedited');
-                            } else {
-                              APIService()
-                                  .createUser(getNewContactInfo())
-                                  .then((value) => {
-                                        setState(() {
-                                          if (value != null) {
-                                            widget.contact = value;
-                                            showModalBottomSheet(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return const CustomBottomSheet(
-                                                    message: 'User added !');
-                                              },
-                                            );
-                                          }
-                                        })
-                                      });
-                            }
-                          }
-                        : null,
-                    style: TextButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 16),
-                      foregroundColor:
-                          isEnabled ? ColorConstants.blue : ColorConstants.grey,
-                    ),
-                    child: Text('Done'),
-                  );
-                },
-              ),
-            ] else
-              TextButton(
-                style: TextButton.styleFrom(
-                  textStyle: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: ColorConstants.blue,
-                  ),
-                ),
-                onPressed: () {
-                  setState(() {
-                    widget.isEditing = true;
-                  });
-                },
-                child: const Text('Edit'),
-              ),*/
           ],
         ),
         const SizedBox(height: 10),
-        CircleAvatar(
-            radius: 97, // Image radius
-            backgroundImage: NetworkImage('https://via.placeholder.com/150')),
+        _image != null
+            ? CircleAvatar(
+                radius: 97,
+                backgroundImage: FileImage(_image!),
+              )
+            : CircleAvatar(
+                radius: 97,
+                backgroundImage:
+                    (widget.contact?.profileImageUrl ?? '').isNotEmpty
+                        ? NetworkImage(widget.contact!.profileImageUrl!)
+                        : const AssetImage('assets/images/profile.png')
+                            as ImageProvider,
+                backgroundColor: Colors.transparent,
+              ),
         const SizedBox(height: 10),
-        TextButton(
-          style: TextButton.styleFrom(
-            textStyle: const TextStyle(fontSize: 16),
-          ),
-          onPressed: () {
-            print("add photo pressed");
-            showModalBottomSheet(
-              backgroundColor: Colors.transparent,
-              context: context,
-              builder: (BuildContext context) {
-                return const CustomBottomSheet(message: 'User added !');
+        if (widget.profileSheetType != ProfileSheetType.info) ...[
+          if (_image != null) ...[
+            TextButton(
+              onPressed: () {
+                _showPicker(context);
               },
-            );
-          },
-          child: const Text('Add photo'),
-        ),
+              child: Text(
+                'Change photo',
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.black,
+                ),
+              ),
+            )
+          ] else
+            TextButton(
+              onPressed: () {
+                _showPicker(context);
+              },
+              child: Text(
+                'Add photo',
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.black,
+                ),
+              ),
+            )
+        ],
         Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -375,81 +364,6 @@ class _ProfileSheetState extends State<ProfileSheet> {
                   ),
                 )
               ]
-
-              /*if (widget.contact == null) ...[
-                RoundedTextField(
-                  hintText: 'First name',
-                  controller: _controllerFirstName,
-                ),
-                SizedBox(height: 10),
-                RoundedTextField(
-                  hintText: 'Last name',
-                  controller: _controllerLastName,
-                ),
-                SizedBox(height: 10),
-                RoundedTextField(
-                    hintText: 'Phone number',
-                    controller: _controllerPhoneNumber,
-                    numericOnly: true),
-              ] else if (widget.isEditing) ...[
-                RoundedTextField(
-                  hintText: 'Last name',
-                  controller: _controllerLastName,
-                ),
-                const SizedBox(height: 10),
-                const SizedBox(height: 10),
-              ] else ...[
-                ProfileInfoField(text: widget.contact?.firstName ?? ""),
-                const Divider(thickness: 1, color: ColorConstants.grey),
-                ProfileInfoField(text: widget.contact?.lastName ?? ""),
-                const Divider(thickness: 1, color: ColorConstants.grey),
-                ProfileInfoField(text: widget.contact?.phoneNumber ?? ""),
-                const Divider(thickness: 1, color: ColorConstants.grey),
-                Container(
-                  alignment: Alignment.topLeft,
-                  decoration: BoxDecoration(color: Colors.transparent),
-                  child: TextButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(25.0),
-                          ),
-                        ),
-                        builder: (context) => YesNoDialog(
-                          title: 'Delete Account?',
-                          onYesButtonPressed: () {
-                            var userId = widget.contact?.id;
-                            if (userId != null) {
-                              APIService()
-                                  .deleteUserById(userId)
-                                  .then((value) => {
-                                        setState(() {
-                                          if (value) {
-                                            Navigator.pop(context);
-                                            Navigator.pop(
-                                                context,
-                                                Operation(widget.contact!,
-                                                    OperationType.deleted));
-                                          }
-                                        })
-                                      });
-                            }
-                          },
-                        ),
-                      );
-                    },
-                    child: Text('Delete contact',
-                        textAlign: TextAlign.left,
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: ColorConstants.red,
-                        )),
-                  ),
-                )
-              ] */
             ],
           ),
         ),

@@ -1,4 +1,4 @@
-enum Endpoints { createUser, updateUser, deleteUser, getUsers }
+enum Endpoints { createUser, updateUser, deleteUser, getUsers, getImageUrl }
 
 class ServiceConstants {
   final scheme = 'http';
@@ -10,14 +10,13 @@ class ServiceConstants {
       case Endpoints.createUser:
         return '/api/user';
       case Endpoints.updateUser:
-        // TODO: Handle this case.
         return '/api/user/$id';
       case Endpoints.deleteUser:
-        // TODO: Handle this case.
         return '/api/user/$id';
       case Endpoints.getUsers:
-        // TODO: Handle this case.
         return '/api/user';
+      case Endpoints.getImageUrl:
+        return '/api/user/UploadImage';
     }
   }
 
