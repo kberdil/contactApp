@@ -140,6 +140,7 @@ class _EditSheetState extends State<EditSheet> {
                 return TextButton(
                   onPressed: isEnabled
                       ? () async {
+                          FocusScope.of(context).requestFocus(FocusNode());
                           Contact updatedContact = await getEditedContactInfo();
                           APIService()
                               .updateUserById(

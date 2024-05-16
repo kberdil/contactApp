@@ -148,6 +148,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
         if (operationType != OperationType.added) {
           operationType = OperationType.edited;
         }
+        widget.profileSheetType = ProfileSheetType.info;
         widget.contact = contact;
 
         showModalBottomSheet(
@@ -258,6 +259,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
                             if (widget.profileSheetType ==
                                 ProfileSheetType.editing) {
                             } else {
+                              FocusScope.of(context).requestFocus(FocusNode());
                               APIService()
                                   .createUser(await getNewContactInfo())
                                   .then((value) => {
