@@ -7,11 +7,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'Constants/ColorConstants.dart';
 import 'Models/Contact.dart';
 import 'ProfileSheet.dart';
-import 'Reusable Widgets/ContactListTile.dart';
-import 'Reusable Widgets/CustomBottomSheet.dart';
-import 'Reusable Widgets/EmptyPage.dart';
+import 'ReusableWidgets/ContactListTile.dart';
+import 'ReusableWidgets/CustomBottomSheet.dart';
+import 'ReusableWidgets/EmptyPage.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -22,6 +24,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    super.initState();
     setState(() {
       contactList = APIService().getUserList();
     });
@@ -37,11 +40,10 @@ class _HomePageState extends State<HomePage> {
       // update data here
       switch (operation.type) {
         case OperationType.added:
-          // TODO: Handle this case.
-          print('operation added');
+          contactList = addContact(operation.contact);
           break;
         case OperationType.edited:
-          // TODO: Handle this case.
+          contactList = updateContactById(contactList!, operation.contact);
           break;
         case OperationType.deleted:
           if (contactList != null) {
@@ -68,11 +70,29 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<List<Contact>> addContact(Contact newContact) async {
+    List<Contact> currentContacts = await contactList!;
+    currentContacts.add(newContact);
+    return currentContacts;
+  }
+
+  Future<List<Contact>> updateContactById(
+      Future<List<Contact>> futureContacts, Contact updatedContact) async {
+    return futureContacts.then((List<Contact> contacts) {
+      int index =
+          contacts.indexWhere((contact) => contact.id == updatedContact.id);
+      if (index != -1) {
+        contacts[index] = updatedContact;
+      }
+      return contacts;
+    });
+  }
+
   void showProfileSheet(ProfileSheetType type, [Contact? contact]) async {
     final result = await showModalBottomSheet(
       isScrollControlled: true,
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
       ),
       builder: (BuildContext bc) {
@@ -81,7 +101,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.9,
               child: ClipRRect(
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(25.0),
                   topRight: Radius.circular(25.0),
                 ),
@@ -136,12 +156,12 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Row(
                   children: [
-                    SizedBox(width: 10.0),
-                    Icon(
+                    const SizedBox(width: 10.0),
+                    const Icon(
                       Icons.search,
                       color: ColorConstants.grey,
                     ),
-                    SizedBox(width: 10.0),
+                    const SizedBox(width: 10.0),
                     Expanded(
                       child: TextField(
                         decoration: InputDecoration(
@@ -165,7 +185,7 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               FutureBuilder<List<Contact>>(
                 future: contactList,
                 builder: (context, snapshot) {

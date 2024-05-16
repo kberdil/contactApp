@@ -43,7 +43,21 @@ class APIService {
     }
   }
 
-  void updateUserById(String id) {
+  Future<Contact> updateUserById(String id, Contact editingContact) async {
+    var URI = ServiceConstants().getURI(Endpoints.updateUser, id: id);
+    var response = await http.put(URI,
+        body: jsonEncode({
+          "firstName": editingContact.firstName,
+          "lastName": editingContact.lastName,
+          "phoneNumber": editingContact.phoneNumber,
+          "profileImageUrl": editingContact.profileImageUrl,
+        }),
+        headers: ServiceConstants().headers);
+    if (response.statusCode == 200) {
+      return Contact.fromJson(json.decode(response.body)['data']);
+    } else {
+      throw Exception('Failed to update user');
+    }
     //: TODO EDİT
   }
 

@@ -122,32 +122,5 @@ class CameraPickerBottomSheet extends StatelessWidget {
         ],
       ),
     );
-    return Container(
-      color: Colors.transparent,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            title: Text('Take Photo'),
-            onTap: onCameraPressed,
-          ),
-          ListTile(
-            title: Text('Choose from Gallery'),
-            onTap: onGalleryPressed,
-          ),
-          SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('Cancel'),
-            style: ElevatedButton.styleFrom(
-              primary: Colors.red,
-              onPrimary: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

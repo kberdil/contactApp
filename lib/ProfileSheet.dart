@@ -1,17 +1,18 @@
 import 'dart:io';
 
 import 'package:contactsapp/Constants/ColorConstants.dart';
+import 'package:contactsapp/EditSheet.dart';
 import 'package:contactsapp/Service/APIService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'Models/Contact.dart';
-import 'Reusable Widgets/CameraPickerBottomSheet.dart';
-import 'Reusable Widgets/CustomBottomSheet.dart';
-import 'Reusable Widgets/ProfileInfoField.dart';
-import 'Reusable Widgets/RoundedTextField.dart';
-import 'Reusable Widgets/YesNoQuestion.dart';
+import 'ReusableWidgets/CameraPickerBottomSheet.dart';
+import 'ReusableWidgets/CustomBottomSheet.dart';
+import 'ReusableWidgets/ProfileInfoField.dart';
+import 'ReusableWidgets/RoundedTextField.dart';
+import 'ReusableWidgets/YesNoQuestion.dart';
 
 enum ProfileSheetType { adding, editing, info }
 
@@ -40,7 +41,6 @@ class _ProfileSheetState extends State<ProfileSheet> {
     _controllerFirstName.addListener(_updateButtonState);
     _controllerLastName.addListener(_updateButtonState);
     _controllerPhoneNumber.addListener(_updateButtonState);
-    _controllerPhoneNumber.addListener(_updateButtonState);
   }
 
   @override
@@ -58,11 +58,11 @@ class _ProfileSheetState extends State<ProfileSheet> {
 
   void _updateButtonState() {
     if (widget.profileSheetType == ProfileSheetType.editing) {
-      /*var isEnabled =
+      var isEnabled =
           !(_controllerFirstName.text == widget.contact?.firstName &&
               _controllerLastName.text == widget.contact?.lastName &&
               _controllerPhoneNumber.text == widget.contact?.phoneNumber);
-      _isButtonEnabled.value = isEnabled;*/
+      _isButtonEnabled.value = isEnabled;
     } else if (widget.profileSheetType == ProfileSheetType.adding) {
       var isEnabled = _controllerFirstName.text.isNotEmpty &&
           _controllerLastName.text.isNotEmpty &&
@@ -118,6 +118,57 @@ class _ProfileSheetState extends State<ProfileSheet> {
     );
   }
 
+  void updateAfterEdit(Contact contact) {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        // update data here
+        operationType = OperationType.edited;
+        widget.contact = contact;
+
+        showModalBottomSheet(
+          backgroundColor: Colors.transparent,
+          context: context,
+          builder: (BuildContext context) {
+            return const CustomBottomSheet(
+                message: 'Changes have been applied!');
+          },
+        );
+      });
+    });
+  }
+
+  void showEditSheet(Contact contact) async {
+    final result = await showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
+      builder: (BuildContext bc) {
+        return Wrap(
+          children: <Widget>[
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.9,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25.0),
+                  topRight: Radius.circular(25.0),
+                ),
+                child: Container(
+                    child: EditSheet(
+                  contact: contact,
+                )),
+              ),
+            )
+          ],
+        );
+      },
+    );
+    if (result != null) {
+      updateAfterEdit(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,7 +176,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
             child: SingleChildScrollView(
                 child: Column(
       children: [
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -144,7 +195,6 @@ class _ProfileSheetState extends State<ProfileSheet> {
 
                     break;
                   case ProfileSheetType.editing:
-                    //widget.onProfileSheetTypeChanged(ProfileSheetType.info);
                     setState(() {
                       widget.profileSheetType = ProfileSheetType.info;
                     });
@@ -172,7 +222,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
                 ),
               ),
             ] else ...[
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
             ],
             if (widget.profileSheetType != ProfileSheetType.info) ...[
               ValueListenableBuilder<bool>(
@@ -227,10 +277,13 @@ class _ProfileSheetState extends State<ProfileSheet> {
                   ),
                 ),
                 onPressed: () {
-                  //widget.onProfileSheetTypeChanged(ProfileSheetType.editing);
-                  setState(() {
+                  // I changed this part because of the problem I mentioned in the readme file.
+                  // If the line below is commented out and the code block in the comment is uncommented,
+                  // the problem I mentioned will occur.
+                  showEditSheet(widget.contact!);
+                  /*setState(() {
                     widget.profileSheetType = ProfileSheetType.editing;
-                  });
+                  });*/
                 },
                 child: const Text('Edit'),
               ),
@@ -254,34 +307,22 @@ class _ProfileSheetState extends State<ProfileSheet> {
               ),
         const SizedBox(height: 10),
         if (widget.profileSheetType != ProfileSheetType.info) ...[
-          if (_image != null) ...[
-            TextButton(
-              onPressed: () {
-                _showPicker(context);
-              },
-              child: Text(
-                'Change photo',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: ColorConstants.black,
-                ),
+          TextButton(
+            onPressed: () {
+              _showPicker(context);
+            },
+            child: Text(
+              (_image != null ||
+                      (widget.contact?.profileImageUrl ?? '').isNotEmpty)
+                  ? 'Change Photo'
+                  : 'Add Photo',
+              style: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: ColorConstants.black,
               ),
-            )
-          ] else
-            TextButton(
-              onPressed: () {
-                _showPicker(context);
-              },
-              child: Text(
-                'Add photo',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: ColorConstants.black,
-                ),
-              ),
-            )
+            ),
+          ),
         ],
         Padding(
           padding: const EdgeInsets.all(20),
@@ -289,30 +330,42 @@ class _ProfileSheetState extends State<ProfileSheet> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // new contact page
-
               if (widget.profileSheetType == ProfileSheetType.adding) ...[
                 RoundedTextField(
                   hintText: 'First name',
                   controller: _controllerFirstName,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 RoundedTextField(
                   hintText: 'Last name',
                   controller: _controllerLastName,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 RoundedTextField(
                     hintText: 'Phone number',
                     controller: _controllerPhoneNumber,
                     numericOnly: true),
-              ] else if (widget.profileSheetType ==
-                  ProfileSheetType.editing) ...[
-                TextField(
-                  onTap: () {
-                    print('____');
-                  },
-                )
-              ] else ...[
+              ] // editing page
+              else if (widget.profileSheetType == ProfileSheetType.editing) ...[
+                RoundedTextField(
+                  hintText: 'First name',
+                  controller: _controllerFirstName
+                    ..text = widget.contact?.firstName ?? '',
+                ),
+                const SizedBox(height: 10),
+                RoundedTextField(
+                  hintText: 'Last name',
+                  controller: _controllerLastName
+                    ..text = widget.contact?.lastName ?? '',
+                ),
+                const SizedBox(height: 10),
+                RoundedTextField(
+                    hintText: 'Phone number',
+                    controller: _controllerPhoneNumber
+                      ..text = widget.contact?.phoneNumber ?? '',
+                    numericOnly: true),
+              ] // info page
+              else ...[
                 ProfileInfoField(text: widget.contact?.firstName ?? ""),
                 const Divider(thickness: 1, color: ColorConstants.grey),
                 ProfileInfoField(text: widget.contact?.lastName ?? ""),
