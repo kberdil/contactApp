@@ -314,9 +314,11 @@ class _ProfileSheetState extends State<ProfileSheet> {
                   ),
                 ),
                 onPressed: () {
+                  // --------------------------------------------------------------------------------------
                   // I changed this part because of the problem I mentioned in the readme file.
                   // If the line below is commented out and the code block in the comment is uncommented,
                   // the problem I mentioned will occur.
+                  // --------------------------------------------------------------------------------------
                   showEditSheet(widget.contact!);
                   /*setState(() {
                     widget.profileSheetType = ProfileSheetType.editing;
