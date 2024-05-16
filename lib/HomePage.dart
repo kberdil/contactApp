@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'Constants/ColorConstants.dart';
 import 'Models/Contact.dart';
+import 'Models/Operation.dart';
 import 'ProfileSheet.dart';
 import 'ReusableWidgets/ContactListTile.dart';
 import 'ReusableWidgets/CustomBottomSheet.dart';
@@ -36,29 +37,31 @@ class _HomePageState extends State<HomePage> {
   }
 
   void update(Operation operation) {
-    setState(() {
-      // update data here
-      switch (operation.type) {
-        case OperationType.added:
-          contactList = addContact(operation.contact);
-          break;
-        case OperationType.edited:
-          contactList = updateContactById(contactList!, operation.contact);
-          break;
-        case OperationType.deleted:
-          if (contactList != null) {
-            contactList =
-                removeContactById(contactList!, operation.contact.id!);
-            showModalBottomSheet(
-              backgroundColor: Colors.transparent,
-              context: context,
-              builder: (BuildContext context) {
-                return const CustomBottomSheet(message: 'Account deleted!');
-              },
-            );
-          }
-          break;
-      }
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        // update data here
+        switch (operation.type) {
+          case OperationType.added:
+            contactList = addContact(contactList!, operation.contact);
+            break;
+          case OperationType.edited:
+            contactList = updateContactById(contactList!, operation.contact);
+            break;
+          case OperationType.deleted:
+            if (contactList != null) {
+              contactList =
+                  removeContactById(contactList!, operation.contact.id!);
+              showModalBottomSheet(
+                backgroundColor: Colors.transparent,
+                context: context,
+                builder: (BuildContext context) {
+                  return const CustomBottomSheet(message: 'Account deleted!');
+                },
+              );
+            }
+            break;
+        }
+      });
     });
   }
 
@@ -70,10 +73,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<List<Contact>> addContact(Contact newContact) async {
-    List<Contact> currentContacts = await contactList!;
-    currentContacts.add(newContact);
-    return currentContacts;
+  Future<List<Contact>> addContact(
+      Future<List<Contact>> futureContacts, Contact newContact) async {
+    return futureContacts.then((List<Contact> contacts) {
+      contacts.add(newContact);
+      return contacts;
+    });
   }
 
   Future<List<Contact>> updateContactById(
@@ -190,9 +195,8 @@ class _HomePageState extends State<HomePage> {
                 future: contactList,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return const CircularProgressIndicator();
                   } else if (snapshot.hasError) {
-                    print('Error: ${snapshot.error}');
                     return Text('Error: ${snapshot.error}');
                   } else if (snapshot.hasData && snapshot.data!.length > 0) {
                     return SingleChildScrollView(
@@ -200,7 +204,7 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Container(
                             height: MediaQuery.of(context).size.height *
-                                0.8, // Adjust the height as needed
+                                0.7, // Adjust the height as needed
                             child: ListView.builder(
                               itemCount: snapshot.data!.length,
                               itemBuilder: (context, index) {
@@ -219,7 +223,17 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   } else {
-                    return EmptyPage();
+                    return Column(
+                      children: [
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.25),
+                        EmptyPage(
+                          onButtonPressed: () {
+                            showProfileSheet(ProfileSheetType.adding);
+                          },
+                        )
+                      ],
+                    );
                   }
                 },
               ),

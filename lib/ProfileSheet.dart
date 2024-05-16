@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'Models/Contact.dart';
+import 'Models/Operation.dart';
 import 'ReusableWidgets/CameraPickerBottomSheet.dart';
 import 'ReusableWidgets/CustomBottomSheet.dart';
 import 'ReusableWidgets/ProfileInfoField.dart';
@@ -122,7 +123,9 @@ class _ProfileSheetState extends State<ProfileSheet> {
     Future.delayed(const Duration(milliseconds: 500), () {
       setState(() {
         // update data here
-        operationType = OperationType.edited;
+        if (operationType != OperationType.added) {
+          operationType = OperationType.edited;
+        }
         widget.contact = contact;
 
         showModalBottomSheet(
@@ -237,22 +240,28 @@ class _ProfileSheetState extends State<ProfileSheet> {
                               APIService()
                                   .createUser(await getNewContactInfo())
                                   .then((value) => {
-                                        setState(() {
-                                          if (value != null) {
-                                            widget.profileSheetType =
-                                                ProfileSheetType.info;
-                                            widget.contact = value;
-                                            operationType = OperationType.added;
-                                            showModalBottomSheet(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return const CustomBottomSheet(
-                                                    message: 'User added !');
-                                              },
-                                            );
-                                          }
+                                        Future.delayed(
+                                            const Duration(milliseconds: 500),
+                                            () {
+                                          setState(() {
+                                            if (value != null) {
+                                              widget.profileSheetType =
+                                                  ProfileSheetType.info;
+                                              widget.contact = value;
+                                              operationType =
+                                                  OperationType.added;
+                                              showModalBottomSheet(
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return const CustomBottomSheet(
+                                                      message: 'User added !');
+                                                },
+                                              );
+                                            }
+                                          });
                                         })
                                       });
                             }
@@ -424,11 +433,3 @@ class _ProfileSheetState extends State<ProfileSheet> {
     ))));
   }
 }
-
-class Operation {
-  final Contact contact;
-  final OperationType type;
-  Operation(this.contact, this.type);
-}
-
-enum OperationType { added, edited, deleted }

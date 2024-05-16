@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../Constants/ColorConstants.dart';
 
 class EmptyPage extends StatelessWidget {
-  const EmptyPage({super.key});
+  final VoidCallback onButtonPressed;
+
+  const EmptyPage({super.key, required this.onButtonPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +16,7 @@ class EmptyPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/images/profile.png',
+            'assets/images/nocontact.png',
           ),
           const SizedBox(height: 15),
           Text("No Contacts",
@@ -34,9 +36,7 @@ class EmptyPage extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: ColorConstants.blue)),
-            onPressed: () {
-              print("create New Contact");
-            },
+            onPressed: onButtonPressed,
             child: const Text('Create new contact'),
           ),
         ],
