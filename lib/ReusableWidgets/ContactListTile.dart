@@ -1,3 +1,4 @@
+import 'package:contactsapp/Constants/TextAndImageConstants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -35,7 +36,7 @@ class ContactListTile extends StatelessWidget {
                     radius: 17,
                     backgroundImage: (contact.profileImageUrl ?? '').isNotEmpty
                         ? NetworkImage(contact.profileImageUrl!)
-                        : AssetImage('assets/images/contact.png')
+                        : const AssetImage(TextAndImageConstants.imageContact)
                             as ImageProvider,
                     backgroundColor: Colors.transparent,
                   ),

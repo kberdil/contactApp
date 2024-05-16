@@ -11,9 +11,9 @@ class ProfileInfoField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 30,
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(color: Colors.transparent),
+      decoration: const BoxDecoration(color: Colors.transparent),
       child: Text(text,
           textAlign: TextAlign.left,
           style: GoogleFonts.nunito(

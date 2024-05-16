@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:contactsapp/Constants/TextAndImageConstants.dart';
 import 'package:contactsapp/Service/APIService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -55,7 +56,8 @@ class _HomePageState extends State<HomePage> {
                 backgroundColor: Colors.transparent,
                 context: context,
                 builder: (BuildContext context) {
-                  return const CustomBottomSheet(message: 'Account deleted!');
+                  return const CustomBottomSheet(
+                      message: TextAndImageConstants.accountDeletedMessage);
                 },
               );
             }
@@ -110,11 +112,9 @@ class _HomePageState extends State<HomePage> {
                   topLeft: Radius.circular(25.0),
                   topRight: Radius.circular(25.0),
                 ),
-                child: Container(
-                  child: ProfileSheet(
-                    contact: contact,
-                    profileSheetType: type,
-                  ),
+                child: ProfileSheet(
+                  contact: contact,
+                  profileSheetType: type,
                 ),
               ),
             )
@@ -138,14 +138,14 @@ class _HomePageState extends State<HomePage> {
             children: [
               Row(
                 children: [
-                  Text("Contacts",
+                  Text(TextAndImageConstants.homePageTitle,
                       style: GoogleFonts.nunito(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: ColorConstants.black)),
                   Expanded(flex: 1, child: Container()),
                   IconButton(
-                    icon: Image.asset('assets/images/add.png'),
+                    icon: Image.asset(TextAndImageConstants.imageAdd),
                     color: Colors.blue,
                     onPressed: () {
                       showProfileSheet(ProfileSheetType.adding);
@@ -154,7 +154,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               Container(
-                height: 40,
+                height: 44,
                 decoration: BoxDecoration(
                   color: ColorConstants.white,
                   borderRadius: BorderRadius.circular(15.0),
@@ -171,7 +171,8 @@ class _HomePageState extends State<HomePage> {
                       child: TextField(
                         decoration: InputDecoration(
                             border: InputBorder.none,
-                            hintText: 'Search by name',
+                            hintText:
+                                TextAndImageConstants.searchBarPlaceholder,
                             hintStyle: GoogleFonts.nunito(
                                 fontSize: 16,
                                 fontWeight: FontWeight.normal,
@@ -203,8 +204,7 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         children: [
                           Container(
-                            height: MediaQuery.of(context).size.height *
-                                0.7, // Adjust the height as needed
+                            height: MediaQuery.of(context).size.height * 0.75,
                             child: ListView.builder(
                               itemCount: snapshot.data!.length,
                               itemBuilder: (context, index) {

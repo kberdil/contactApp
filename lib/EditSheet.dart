@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:contactsapp/Constants/TextAndImageConstants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -64,7 +65,7 @@ class _EditSheetState extends State<EditSheet> {
       firstName: _controllerFirstName.text,
       lastName: _controllerLastName.text,
       phoneNumber: _controllerPhoneNumber.text,
-      profileImageUrl: widget.contact.profileImageUrl, // keep existing URL
+      profileImageUrl: widget.contact.profileImageUrl,
     );
     if (_image != null) {
       await APIService().uploadImage(_image!).then((value) => {
@@ -130,7 +131,7 @@ class _EditSheetState extends State<EditSheet> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancel'),
+              child: const Text(TextAndImageConstants.cancel),
             ),
             const SizedBox(width: 20),
             ValueListenableBuilder<bool>(
@@ -159,7 +160,7 @@ class _EditSheetState extends State<EditSheet> {
                     foregroundColor:
                         isEnabled ? ColorConstants.blue : ColorConstants.grey,
                   ),
-                  child: Text('Done'),
+                  child: const Text(TextAndImageConstants.done),
                 );
               },
             ),
@@ -176,7 +177,7 @@ class _EditSheetState extends State<EditSheet> {
                 backgroundImage:
                     (widget.contact.profileImageUrl ?? '').isNotEmpty
                         ? NetworkImage(widget.contact.profileImageUrl!)
-                        : const AssetImage('assets/images/profile.png')
+                        : const AssetImage(TextAndImageConstants.imageProfile)
                             as ImageProvider,
                 backgroundColor: Colors.transparent,
               ),
@@ -188,8 +189,8 @@ class _EditSheetState extends State<EditSheet> {
           child: Text(
             (_image != null ||
                     (widget.contact.profileImageUrl ?? '').isNotEmpty)
-                ? 'Change Photo'
-                : 'Add Photo',
+                ? TextAndImageConstants.changePhoto
+                : TextAndImageConstants.addPhoto,
             style: GoogleFonts.nunito(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -203,17 +204,17 @@ class _EditSheetState extends State<EditSheet> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               RoundedTextField(
-                hintText: 'First name',
+                hintText: TextAndImageConstants.firstNameInputPlaceholder,
                 controller: _controllerFirstName,
               ),
               const SizedBox(height: 10),
               RoundedTextField(
-                hintText: 'Last name',
+                hintText: TextAndImageConstants.lastNameInputPlaceholder,
                 controller: _controllerLastName,
               ),
               const SizedBox(height: 10),
               RoundedTextField(
-                  hintText: 'Phone number',
+                  hintText: TextAndImageConstants.phoneNumberInputPlaceholder,
                   controller: _controllerPhoneNumber,
                   numericOnly: true),
             ],

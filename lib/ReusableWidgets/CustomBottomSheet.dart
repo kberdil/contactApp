@@ -1,4 +1,5 @@
 import 'package:contactsapp/Constants/ColorConstants.dart';
+import 'package:contactsapp/Constants/TextAndImageConstants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -14,7 +15,7 @@ class CustomBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 80,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
@@ -32,8 +33,8 @@ class CustomBottomSheet extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
           children: [
-            Image.asset('assets/images/check.png'),
-            SizedBox(width: 15),
+            Image.asset(TextAndImageConstants.imageCheck),
+            const SizedBox(width: 15),
             Text(
               message,
               style: GoogleFonts.nunito(

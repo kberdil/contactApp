@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:contactsapp/Constants/ColorConstants.dart';
+import 'package:contactsapp/Constants/TextAndImageConstants.dart';
 import 'package:contactsapp/EditSheet.dart';
 import 'package:contactsapp/Service/APIService.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,11 @@ class _ProfileSheetState extends State<ProfileSheet> {
   final TextEditingController _controllerFirstName = TextEditingController();
   final TextEditingController _controllerLastName = TextEditingController();
   final TextEditingController _controllerPhoneNumber = TextEditingController();
+  final TextEditingController _controllerEditFirstName =
+      TextEditingController();
+  final TextEditingController _controllerEditLastName = TextEditingController();
+  final TextEditingController _controllerEditPhoneNumber =
+      TextEditingController();
   final ValueNotifier<bool> _isButtonEnabled = ValueNotifier<bool>(false);
   File? _image;
   final ImagePicker _picker = ImagePicker();
@@ -42,6 +48,14 @@ class _ProfileSheetState extends State<ProfileSheet> {
     _controllerFirstName.addListener(_updateButtonState);
     _controllerLastName.addListener(_updateButtonState);
     _controllerPhoneNumber.addListener(_updateButtonState);
+
+    _controllerEditFirstName.addListener(_updateButtonState);
+    _controllerEditLastName.addListener(_updateButtonState);
+    _controllerEditPhoneNumber.addListener(_updateButtonState);
+
+    _controllerEditFirstName.text = widget.contact?.firstName ?? '';
+    _controllerEditLastName.text = widget.contact?.lastName ?? '';
+    _controllerEditPhoneNumber.text = widget.contact?.phoneNumber ?? '';
   }
 
   @override
@@ -50,9 +64,17 @@ class _ProfileSheetState extends State<ProfileSheet> {
     _controllerLastName.removeListener(_updateButtonState);
     _controllerPhoneNumber.removeListener(_updateButtonState);
 
+    _controllerEditFirstName.removeListener(_updateButtonState);
+    _controllerEditLastName.removeListener(_updateButtonState);
+    _controllerEditPhoneNumber.removeListener(_updateButtonState);
+
     _controllerFirstName.dispose();
     _controllerLastName.dispose();
     _controllerPhoneNumber.dispose();
+
+    _controllerEditFirstName.dispose();
+    _controllerEditLastName.dispose();
+    _controllerEditPhoneNumber.dispose();
     _isButtonEnabled.dispose();
     super.dispose();
   }
@@ -60,9 +82,9 @@ class _ProfileSheetState extends State<ProfileSheet> {
   void _updateButtonState() {
     if (widget.profileSheetType == ProfileSheetType.editing) {
       var isEnabled =
-          !(_controllerFirstName.text == widget.contact?.firstName &&
-              _controllerLastName.text == widget.contact?.lastName &&
-              _controllerPhoneNumber.text == widget.contact?.phoneNumber);
+          !(_controllerEditFirstName.text == widget.contact?.firstName &&
+              _controllerEditLastName.text == widget.contact?.lastName &&
+              _controllerEditPhoneNumber.text == widget.contact?.phoneNumber);
       _isButtonEnabled.value = isEnabled;
     } else if (widget.profileSheetType == ProfileSheetType.adding) {
       var isEnabled = _controllerFirstName.text.isNotEmpty &&
@@ -133,7 +155,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
           context: context,
           builder: (BuildContext context) {
             return const CustomBottomSheet(
-                message: 'Changes have been applied!');
+                message: TextAndImageConstants.accountEditedMessage);
           },
         );
       });
@@ -195,7 +217,6 @@ class _ProfileSheetState extends State<ProfileSheet> {
                 switch (widget.profileSheetType) {
                   case ProfileSheetType.adding:
                     Navigator.pop(context);
-
                     break;
                   case ProfileSheetType.editing:
                     setState(() {
@@ -212,12 +233,12 @@ class _ProfileSheetState extends State<ProfileSheet> {
                     break;
                 }
               },
-              child: const Text('Cancel'),
+              child: const Text(TextAndImageConstants.cancel),
             ),
             if (widget.profileSheetType == ProfileSheetType.adding ||
                 operationType == OperationType.added) ...[
               Text(
-                "New Contact",
+                TextAndImageConstants.newContact,
                 style: GoogleFonts.nunito(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -257,7 +278,8 @@ class _ProfileSheetState extends State<ProfileSheet> {
                                                 builder:
                                                     (BuildContext context) {
                                                   return const CustomBottomSheet(
-                                                      message: 'User added !');
+                                                      message: TextAndImageConstants
+                                                          .accountAddedMessage);
                                                 },
                                               );
                                             }
@@ -268,11 +290,15 @@ class _ProfileSheetState extends State<ProfileSheet> {
                           }
                         : null,
                     style: TextButton.styleFrom(
-                      textStyle: const TextStyle(fontSize: 16),
+                      textStyle: GoogleFonts.nunito(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: ColorConstants.blue,
+                      ),
                       foregroundColor:
                           isEnabled ? ColorConstants.blue : ColorConstants.grey,
                     ),
-                    child: Text('Done'),
+                    child: const Text(TextAndImageConstants.done),
                   );
                 },
               ),
@@ -310,7 +336,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
                 backgroundImage:
                     (widget.contact?.profileImageUrl ?? '').isNotEmpty
                         ? NetworkImage(widget.contact!.profileImageUrl!)
-                        : const AssetImage('assets/images/profile.png')
+                        : const AssetImage(TextAndImageConstants.imageProfile)
                             as ImageProvider,
                 backgroundColor: Colors.transparent,
               ),
@@ -323,8 +349,8 @@ class _ProfileSheetState extends State<ProfileSheet> {
             child: Text(
               (_image != null ||
                       (widget.contact?.profileImageUrl ?? '').isNotEmpty)
-                  ? 'Change Photo'
-                  : 'Add Photo',
+                  ? TextAndImageConstants.changePhoto
+                  : TextAndImageConstants.addPhoto,
               style: GoogleFonts.nunito(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -341,49 +367,46 @@ class _ProfileSheetState extends State<ProfileSheet> {
               // new contact page
               if (widget.profileSheetType == ProfileSheetType.adding) ...[
                 RoundedTextField(
-                  hintText: 'First name',
+                  hintText: TextAndImageConstants.firstNameInputPlaceholder,
                   controller: _controllerFirstName,
                 ),
                 const SizedBox(height: 10),
                 RoundedTextField(
-                  hintText: 'Last name',
+                  hintText: TextAndImageConstants.lastNameInputPlaceholder,
                   controller: _controllerLastName,
                 ),
                 const SizedBox(height: 10),
                 RoundedTextField(
-                    hintText: 'Phone number',
+                    hintText: TextAndImageConstants.phoneNumberInputPlaceholder,
                     controller: _controllerPhoneNumber,
                     numericOnly: true),
               ] // editing page
               else if (widget.profileSheetType == ProfileSheetType.editing) ...[
                 RoundedTextField(
-                  hintText: 'First name',
-                  controller: _controllerFirstName
-                    ..text = widget.contact?.firstName ?? '',
+                  hintText: TextAndImageConstants.firstNameInputPlaceholder,
+                  controller: _controllerEditFirstName,
                 ),
                 const SizedBox(height: 10),
                 RoundedTextField(
-                  hintText: 'Last name',
-                  controller: _controllerLastName
-                    ..text = widget.contact?.lastName ?? '',
+                  hintText: TextAndImageConstants.lastNameInputPlaceholder,
+                  controller: _controllerEditFirstName,
                 ),
                 const SizedBox(height: 10),
                 RoundedTextField(
-                    hintText: 'Phone number',
-                    controller: _controllerPhoneNumber
-                      ..text = widget.contact?.phoneNumber ?? '',
+                    hintText: TextAndImageConstants.phoneNumberInputPlaceholder,
+                    controller: _controllerEditPhoneNumber,
                     numericOnly: true),
               ] // info page
               else ...[
-                ProfileInfoField(text: widget.contact?.firstName ?? ""),
+                ProfileInfoField(text: widget.contact?.firstName ?? ''),
                 const Divider(thickness: 1, color: ColorConstants.grey),
-                ProfileInfoField(text: widget.contact?.lastName ?? ""),
+                ProfileInfoField(text: widget.contact?.lastName ?? ''),
                 const Divider(thickness: 1, color: ColorConstants.grey),
-                ProfileInfoField(text: widget.contact?.phoneNumber ?? ""),
+                ProfileInfoField(text: widget.contact?.phoneNumber ?? ''),
                 const Divider(thickness: 1, color: ColorConstants.grey),
                 Container(
                   alignment: Alignment.topLeft,
-                  decoration: BoxDecoration(color: Colors.transparent),
+                  decoration: const BoxDecoration(color: Colors.transparent),
                   child: TextButton(
                     onPressed: () {
                       showModalBottomSheet(
@@ -394,7 +417,8 @@ class _ProfileSheetState extends State<ProfileSheet> {
                           ),
                         ),
                         builder: (context) => YesNoDialog(
-                          title: 'Delete Account?',
+                          title: TextAndImageConstants
+                              .deleteAccountBottomSheetTitle,
                           onYesButtonPressed: () {
                             var userId = widget.contact?.id;
                             if (userId != null) {
@@ -416,7 +440,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
                         ),
                       );
                     },
-                    child: Text('Delete contact',
+                    child: Text(TextAndImageConstants.deleteContact,
                         textAlign: TextAlign.left,
                         style: GoogleFonts.nunito(
                           fontSize: 16,

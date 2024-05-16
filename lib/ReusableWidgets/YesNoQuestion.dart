@@ -2,11 +2,13 @@ import 'package:contactsapp/Constants/ColorConstants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../Constants/TextAndImageConstants.dart';
+
 class YesNoDialog extends StatelessWidget {
   final String title;
   final VoidCallback onYesButtonPressed;
 
-  YesNoDialog({
+  const YesNoDialog({
     super.key,
     required this.title,
     required this.onYesButtonPressed,
@@ -47,7 +49,7 @@ class YesNoDialog extends StatelessWidget {
                   child: TextButton(
                     onPressed: onYesButtonPressed,
                     child: Text(
-                      'Yes',
+                      TextAndImageConstants.yes,
                       style: GoogleFonts.nunito(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -56,7 +58,7 @@ class YesNoDialog extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 10.0),
+                const SizedBox(height: 10.0),
                 Container(
                   width: double.infinity,
                   height: 54.0,
@@ -76,7 +78,7 @@ class YesNoDialog extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     child: Text(
-                      'No',
+                      TextAndImageConstants.no,
                       style: GoogleFonts.nunito(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../Constants/ColorConstants.dart';
+import '../Constants/TextAndImageConstants.dart';
 
 class EmptyPage extends StatelessWidget {
   final VoidCallback onButtonPressed;
@@ -16,16 +17,16 @@ class EmptyPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/images/nocontact.png',
+            TextAndImageConstants.imageNoContact,
           ),
           const SizedBox(height: 15),
-          Text("No Contacts",
+          Text(TextAndImageConstants.emptyListTitle,
               style: GoogleFonts.nunito(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: ColorConstants.black)),
           const SizedBox(height: 15),
-          Text("Contacts you’ve added will appear here.",
+          Text(TextAndImageConstants.emptyListDescription,
               style: GoogleFonts.nunito(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -37,7 +38,7 @@ class EmptyPage extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     color: ColorConstants.blue)),
             onPressed: onButtonPressed,
-            child: const Text('Create new contact'),
+            child: const Text(TextAndImageConstants.emptyListButton),
           ),
         ],
       ),

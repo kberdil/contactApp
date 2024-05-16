@@ -58,7 +58,6 @@ class APIService {
     } else {
       throw Exception('Failed to update user');
     }
-    //: TODO EDİT
   }
 
   Future<bool> deleteUserById(String id) async {
@@ -76,9 +75,8 @@ class APIService {
       throw Exception('Image not found');
     }
     String fileName = image.path.split('/').last;
-    // Dosya uzantısını alın
     String fileExtension = fileName.split('.').last.toLowerCase();
-    // Dosya uzantısı kontrolü
+
     if (fileExtension != 'png' &&
         fileExtension != 'jpg' &&
         fileExtension != 'jpeg') {
@@ -101,7 +99,7 @@ class APIService {
       var responseBody = json.decode(response.body);
       return responseBody['data']['imageUrl'];
     } else {
-      throw Exception('Failed to create user');
+      throw Exception('Failed to upload image');
     }
   }
 }

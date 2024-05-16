@@ -1,3 +1,4 @@
+import 'package:contactsapp/Constants/TextAndImageConstants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -42,8 +43,8 @@ class CameraPickerBottomSheet extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.asset('assets/images/camera.png'),
-                          SizedBox(width: 10),
+                          Image.asset(TextAndImageConstants.imageCamera),
+                          const SizedBox(width: 10),
                           Text(
                             'Camera',
                             style: GoogleFonts.nunito(
@@ -55,7 +56,7 @@ class CameraPickerBottomSheet extends StatelessWidget {
                         ],
                       )),
                 ),
-                SizedBox(height: 10.0),
+                const SizedBox(height: 10.0),
                 Container(
                   width: double.infinity,
                   height: 54.0,
@@ -74,8 +75,8 @@ class CameraPickerBottomSheet extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Image.asset('assets/images/gallery.png'),
-                          SizedBox(width: 10),
+                          Image.asset(TextAndImageConstants.imageGallery),
+                          const SizedBox(width: 10),
                           Text(
                             'Gallery',
                             style: GoogleFonts.nunito(
@@ -87,7 +88,7 @@ class CameraPickerBottomSheet extends StatelessWidget {
                         ],
                       )),
                 ),
-                SizedBox(height: 10.0),
+                const SizedBox(height: 10.0),
                 Container(
                   width: double.infinity,
                   height: 54.0,
@@ -107,7 +108,7 @@ class CameraPickerBottomSheet extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     child: Text(
-                      'Cancel',
+                      TextAndImageConstants.cancel,
                       style: GoogleFonts.nunito(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
